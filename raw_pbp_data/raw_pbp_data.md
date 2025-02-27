@@ -1,0 +1,1 @@
+This is where I store the training data while working on the model locally. The play-by-play CSVs are pretty large and seemed unnecessary to host on Github as they are publically available for download here: https://github.com/nflverse/nflverse-data/releases
