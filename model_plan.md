@@ -15,15 +15,15 @@ half_seconds_remaining
 qtr
 down
 ydstogo
-normal_first_down
-first_and_short
-first_and_long
-second_and_long
-second_and_medium
-second_and_short
-third_and_long
-third_and_medium
-third_and_short
+normal_first_down (1st + 7-10)
+first_and_short (1st + 6 or less)
+first_and_long (1st + 10+)
+second_and_long (2nd + 7+)
+second_and_medium (2nd + 4-7)
+second_and_short (2nd + 3 or less)
+third_and_long (3rd + 7+)
+third_and_medium (3rd + 4-7)
+third_and_short (3rd + 3 or less)
 in_redzone
 is_two_minute_drill
 is_goal_to_go
