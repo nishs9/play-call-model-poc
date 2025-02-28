@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-features = ["posteam", "posteam_home", "posteam_away", "defteam", "score_differential", "yardline_100", "half_seconds_remaining", "qtr",
+features = ["pos_team", "posteam_home", "posteam_away", "def_team", "score_differential", "yardline_100", "half_seconds_remaining", "qtr",
             "down", "ydstogo", "normal_first_down", "first_and_short", "first_and_long", "second_and_short", "second_and_medium", "second_and_long",
             "third_and_short", "third_and_medium", "third_and_long", "in_redzone", "is_two_minute_drill", "is_goal_to_go", "curr_drive_length"] 
 
@@ -16,13 +16,20 @@ def convert_drive_start_to_raw_yards(drive_start_label: str, posteam: str) -> in
     if (posteam == side_of_field):
         return int(100 - int(relative_yardline))
     else:
-        return int(relative_yardline)
+        return posteam, int(relative_yardline)
     
-def pre_process_training_data() -> tuple[pd.DataFrame, pd.Series, pd.Series, pd.DataFrame]:
-    df = pd.read_csv("raw_pbp_data/2024_NFL.csv", low_memory=False)
+def pre_process_training_data(year: int = 2024, save_data: bool = False) -> tuple[pd.DataFrame, pd.Series, pd.Series, pd.DataFrame]:
+    df = pd.read_csv(f"raw_pbp_data/{year}_NFL.csv", low_memory=False)
+    df['year'] = year
     df = df[df['season_type'] == 'REG']
     df = df[df['down'].isin([1,2,3])]
-    df = df[df['play_type'].isin(['pass', 'run'])] 
+    df = df[df['play_type'].isin(['pass', 'run'])]
+    df = df[~((df['air_yards'] == 0) & (df['play_type'] == 'pass'))]
+    df = df[~((df['air_yards'].isna()) & (df['play_type'] == 'pass'))]
+    df = df[~(df['drive_start_yard_line'].isna())]
+
+    df["pos_team"] = df["posteam"]
+    df["def_team"] = df["defteam"]
 
     df[["posteam", "drive_start_yard_line_100"]] = df[["posteam", "drive_start_yard_line"]].apply(lambda row: convert_drive_start_to_raw_yards(row["drive_start_yard_line"], row["posteam"]), axis=1, result_type='broadcast')
 
@@ -50,6 +57,10 @@ def pre_process_training_data() -> tuple[pd.DataFrame, pd.Series, pd.Series, pd.
             df['yards_gained']
         )
     
+    if (save_data):
+        saved_df = df[features + output_columns]
+        saved_df.to_csv(f"training_data/{year}_NFL.csv", index=False)
+    
     X = df[features]
     y_play_type = df["play_type"]
     y_play_length = df["play_length"]
@@ -57,5 +68,6 @@ def pre_process_training_data() -> tuple[pd.DataFrame, pd.Series, pd.Series, pd.
     return X, y_play_type, y_play_length, df
 
 if __name__ == "__main__":
-    X, y_play_type, y_play_length, df = pre_process_training_data()
-    print(X.head())
+    for year in range(2017, 2025):
+        print(f"Cleaning and processing training data for {year}...")
+        X, y_play_type, y_play_length, df = pre_process_training_data(year=year, save_data=True)
